@@ -91,10 +91,9 @@ select continent, max(cast(total_deaths as int)) as totaldeathcount
 
  --cummulative aggrigate using 'sum over' clause 
 
-
  select d.continent, d.location, d.date, d.population, v.new_vaccinations,
-sum(cast(v.new_vaccinations as int)) over (partition by d.location order by d.location, d.date) as rollingpeoplevaccinated
-   from PortfolioProject..CovidDeaths d
+ sum(cast(v.new_vaccinations as int)) over (partition by d.location order by d.location, d.date) as rollingpeoplevaccinated
+ from PortfolioProject..CovidDeaths d
  join PortfolioProject..CovidVaccinations v
  on d.location = v.location
  and d.date = v.date
@@ -104,30 +103,17 @@ sum(cast(v.new_vaccinations as int)) over (partition by d.location order by d.lo
 
  ---using cte
 
-
  with popvsvacc (continent, location, date, population, new_vaccinations, rollingpeoplevaccinated)
  as
  (
   select d.continent, d.location, d.date, d.population, v.new_vaccinations,
 sum(cast(v.new_vaccinations as int)) over (partition by d.location order by d.location, d.date) as rollingpeoplevaccinated
-   from PortfolioProject..CovidDeaths d
- join PortfolioProject..CovidVaccinations v
- on d.location = v.location
- and d.date = v.date
- where d.continent is not null
+from PortfolioProject..CovidDeaths d
+join PortfolioProject..CovidVaccinations v
+on d.location = v.location
+and d.date = v.date
+where d.continent is not null
 -- order by 2,3 (as order by clause cannot be ther in cte function)
  )
  select *, (rollingpeoplevaccinated/population)*100 as peoplevaccinated
  from popvsvacc
-
-
- ---creating view to store data for later visualisation 
-
- create view Covid as--(covid is the random given name to the view)
- select sum(new_cases) as total_cases, sum(cast(new_deaths as int))as total_deaths, sum(cast(new_deaths as int))/sum(new_cases)*100 as deathpercentage
- from PortfolioProject..CovidDeaths
- where continent is not null
--- order by 1,2
- 
- select *
- from covid
